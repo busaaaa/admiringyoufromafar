@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #fdfbf7; /* Soft aesthetic cream */
+            font-family: 'Montserrat', sans-serif;
+            overflow: hidden;
+            color: #4a4a4a;
+        }
+
+        /* --- ENVELOPE STYLES --- */
+        #envelope-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 1s ease;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .envelope-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        .envelope {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #e6c5c8; /* Dusty rose back */
+            border-radius: 5px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+        }
+
+        /* The actual letter peeking out */
+        .letter-peek {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            right: 10px;
+            bottom: 5px;
+            background: #fff;
+            border-radius: 5px;
+            z-index: 2;
+            transition: transform 0.8s ease 0.4s; /* Delays slide until flap opens */
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.2rem;
+            color: #b07d82;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* The envelope flaps using CSS triangles */
+        .flap-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 110px solid #dca4a8;
+            z-index: 4;
+            transform-origin: top;
+            transition: transform 0.6s ease, z-index 0.2s;
+        }
+
+        .pocket-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-bottom: 100px solid #e1b3b6;
+            z-index: 3;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .pocket-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-left: 150px solid #dfacb0;
+            border-top: 100px solid transparent;
+            border-bottom: 100px solid transparent;
+            z-index: 3;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .pocket-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            border-right: 150px solid #dfacb0;
+            border-top: 100px solid transparent;
+            border-bottom: 100px solid transparent;
+            z-index: 3;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .instruction {
+            margin-top: 40px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #a38a8d;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Envelope Open Animation Classes */
+        .open .flap-top {
+            transform: rotateX(180deg);
+            z-index: 1; /* Puts flap behind the letter so it can slide out */
+        }
+
+        .open .letter-peek {
+            transform: translateY(-80px);
+        }
+
+        /* --- FULL LETTER STYLES --- */
+        #full-letter-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none; /* Can't click until it's visible */
+            transition: opacity 1.5s ease;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fdfbf7;
+        }
+
+        #full-letter-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .letter-paper {
+            background: #fff;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+            border: 1px solid #f0e6e7;
+        }
+
+        /* Hiding scrollbar for an aesthetic look */
+        .letter-paper::-webkit-scrollbar {
+            width: 6px;
+        }
+        .letter-paper::-webkit-scrollbar-thumb {
+            background-color: #e6c5c8;
+            border-radius: 10px;
+        }
+
+        .greeting {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem;
+            color: #b07d82;
+            margin-bottom: 30px;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .body-text {
+            font-size: 1.05rem;
+            line-height: 2;
+            color: #5a5a5a;
+            margin-bottom: 25px;
+            text-align: justify;
+        }
+
+        .signature {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.8rem;
+            color: #b07d82;
+            text-align: right;
+            margin-top: 40px;
+            font-style: italic;
+        }
+
+        /* Hidden audio player - it just plays in the background */
+        audio {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="envelope-container">
+        <div class="envelope-wrapper" id="envelope">
+            <div class="envelope">
+                <div class="letter-peek">Open Me</div>
+                <div class="flap-top"></div>
+                <div class="pocket-left"></div>
+                <div class="pocket-right"></div>
+                <div class="pocket-bottom"></div>
+            </div>
+        </div>
+        <div class="instruction">Tap the envelope to open</div>
+    </div>
+
+    <div id="full-letter-container">
+        <div class="letter-paper">
+            <div class="greeting">Dear 
+                Ms. Eli,</div>
+            
+            <div class="body-text">
+                Hi, it's me, M, that gave you the chocolate with notes. You don't know me, but I just want to tell you that I really admire you. I always saw you sa canteen and sa cr banda, and nakakasalubong pa kita. You just probably didn't notice. I don't even know your name first, but I have a friend sa educ, Gab, kaya don ko nalaman name mo kasi nag ask ako. I don't know the exact reason when or how, but I really like you especially your eyes, I'm happy when I look at you. I'm not expecting something from you, nor am I expecting you to reciprocate my feelings. But I just want to know you even better. You don't need to reply naman, as I've said. I'm saying this because I don't want to regret anything.
+            </div>
+
+            <div class="body-text">
+                Good luck on your final demo, Ms. Eli!! 🙏🙇
+            </div>
+
+            <div class="signature">
+                - M<br>
+                
+            </div>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="magic.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const envelope = document.getElementById('envelope');
+        const envelopeContainer = document.getElementById('envelope-container');
+        const fullLetterContainer = document.getElementById('full-letter-container');
+        const bgMusic = document.getElementById('bgMusic');
+
+        // When the envelope is clicked
+        envelope.addEventListener('click', () => {
+            
+            // 1. Play the music (this works because the user just clicked!)
+            bgMusic.play().catch(e => console.log("Audio play failed:", e));
+
+            // 2. Trigger the envelope opening CSS animation
+            envelope.classList.add('open');
+
+            // 3. Wait for the envelope animation to finish, then transition to the letter
+            setTimeout(() => {
+                // Fade out the envelope
+                envelopeContainer.style.opacity = '0';
+                
+                setTimeout(() => {
+                    envelopeContainer.style.display = 'none';
+                    // Fade in the full letter
+                    fullLetterContainer.classList.add('visible');
+                }, 1000); // Wait for fade out to complete
+
+            }, 1200); // Waits 1.2 seconds for the envelope flap and slide animation
+        });
+    </script>
+</body>
+</html>
